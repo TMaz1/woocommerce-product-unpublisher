@@ -1,102 +1,161 @@
 /*
  * WooCommerce Product Unpublisher
- * Classic WordPress editor styling
+ * Native WordPress timestamp editor styling
  */
+
+/* Main row */
 
 #wpu-publish-row {
     position: relative;
+    padding: 6px 10px 8px;
+    line-height: 1.4;
+    font-size: 13px;
 }
 
-#wpu-publish-row .dashicons {
-    color: #646970;
+/* Calendar icon */
+
+#wpu-publish-row>.dashicons {
+    color: rgb(60, 67, 74);
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
     vertical-align: middle;
 }
 
+/* Timestamp display */
+
+#wpu-publish-row #wpu-timestamp {
+    display: inline;
+    position: relative;
+    top: 3px;
+    left: 2px;
+}
+
+#wpu-publish-row #wpu-timestamp {
+    display: inline;
+    position: relative;
+    top: 3px;
+    left: 2px;
+}
+
 #wpu-publish-row #wpu-label {
-    margin-right: 2px;
+    font-weight: 400;
 }
 
 #wpu-publish-row #wpu-current-value {
-    display: inline;
+    font-weight: 600;
 }
 
-#wpu-publish-row #wpu-edit-toggle {
+/* Edit link */
+
+#wpu-publish-row .edit-timestamp {
     margin-left: 4px;
+    position: relative;
+    top: 3px;
+    left: -2px;
 }
+
+#wpu-publish-row .edit-timestamp:hover {
+    color: #135e96;
+}
+
+/* Editing panel */
 
 #wpu-publish-row #wpu-edit-panel {
-    margin-top: 8px;
+    border: 0;
+    margin: 8px 0 0;
+    padding: 0;
 }
 
 #wpu-publish-row #wpu-edit-panel[hidden] {
     display: none;
 }
 
-#wpu-publish-row .wpu-fields {
-    border: 0;
-    margin: 0;
-    padding: 0;
+/* Native timestamp layout */
+
+#wpu-publish-row .timestamp-wrap {
+    line-height: 2;
 }
 
-#wpu-publish-row .wpu-date-fields,
-#wpu-publish-row .wpu-time-fields {
+#wpu-publish-row .timestamp-wrap label {
+    display: inline-flex;
+    width: auto;
+    margin: 0 1px;
+}
+
+/* #wpu-edit-panel .timestamp-wrap {
     display: flex;
-    align-items: center;
     flex-wrap: wrap;
-    gap: 4px;
-    margin-bottom: 6px;
+    align-items: center;
+    gap: 6px;
 }
 
-#wpu-publish-row .wpu-fields select,
-#wpu-publish-row .wpu-fields input {
+#wpu-edit-panel .timestamp-wrap label {
+    display: inline-flex;
+    width: auto;
+    flex: 0 0 auto;
+} */
+
+#wpu-publish-row .timestamp-wrap select,
+#wpu-publish-row .timestamp-wrap input {
     box-sizing: border-box;
-    min-height: 28px;
-    height: 28px;
-    padding: 0 5px;
-    margin: 0;
     vertical-align: middle;
-    font-size: 13px;
+    margin: 0;
+    font-size: 12px;
+    height: 28px;
 }
 
-#wpu-publish-row #wpu_mm {
-    width: 115px;
-    max-width: 100%;
+#wpu-publish-row .timestamp-wrap select {
+    font-size: 12px;
+    width: auto;
+    max-width: 115px;
+}
+
+#wpu-publish-row .timestamp-wrap input {
+    padding: 6px 1px;
+    text-align: center;
 }
 
 #wpu-publish-row #wpu_jj,
 #wpu-publish-row #wpu_hh,
 #wpu-publish-row #wpu_mn {
-    width: 38px;
+    width: 1.55rem;
+    margin-bottom: 0;
 }
 
 #wpu-publish-row #wpu_aa {
-    width: 58px;
+    width: 2.5rem;
 }
 
-#wpu-publish-row .wpu-actions {
+/* Editor actions */
+
+#wpu-publish-row #wpu-edit-panel>p:last-child {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 4px;
     margin: 8px 0 0;
 }
 
-#wpu-publish-row .wpu-actions .button {
+#wpu-publish-row #wpu-ok {
     margin: 0;
 }
 
-#wpu-publish-row .wpu-actions a {
-    text-decoration: none;
+#wpu-publish-row #wpu-cancel {
+    cursor: pointer;
 }
 
 #wpu-publish-row .wpu-remove {
-    color: #b32d2e;
     margin-left: auto;
+    color: #b32d2e;
+    text-decoration: none;
 }
 
 #wpu-publish-row .wpu-remove:hover {
     color: #8a2424;
 }
+
+/* Validation */
 
 #wpu-publish-row .wpu-error {
     color: #b32d2e;
@@ -105,7 +164,7 @@
 
 #wpu-publish-row .wpu-invalid {
     border-color: #d63638 !important;
-    box-shadow: 0 0 0 1px #d63638 !important;
+    box-shadow: 0 0 2px rgba(214, 54, 56, .8);
 }
 
 #wpu-publish-row input:focus,
@@ -113,4 +172,44 @@
     border-color: #2271b1;
     box-shadow: 0 0 0 1px #2271b1;
     outline: 2px solid transparent;
+}
+
+@media screen and (max-width: 782px) {
+    #wpu-edit-panel .timestamp-wrap>label:first-child {
+        margin-bottom: 10px;
+        width: 100%;
+        min-width: 0;
+    }
+
+    #wpu-edit-panel #wpu_mm {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    #wpu-publish-row .timestamp-wrap input {
+        font-size: 14px;
+    }
+
+    #wpu-publish-row #wpu_jj,
+    #wpu-publish-row #wpu_hh,
+    #wpu-publish-row #wpu_mn {
+        width: auto;
+        margin-bottom: 5px;
+    }
+
+    #wpu-publish-row #wpu_aa {
+        width: auto;
+    }
+
+    #wpu-publish-row .timestamp-wrap input {
+        padding: 12px 3px;
+    }
+
+    #wpu-publish-row .timestamp-wrap label {
+        margin: 0;
+    }
+
+    #wpu-publish-row #wpu-edit-panel>p:last-child {
+        gap: 15px;
+    }
 }

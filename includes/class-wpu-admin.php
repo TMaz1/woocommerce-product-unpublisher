@@ -52,11 +52,6 @@ final class WPU_Admin
             array($this, 'assets')
         );
 
-        add_filter(
-            'manage_edit-product_columns',
-            array($this, 'add_column')
-        );
-
         add_action(
             'manage_product_posts_custom_column',
             array($this, 'column_value'),
@@ -171,6 +166,27 @@ final class WPU_Admin
                     __('November', 'woocommerce-product-unpublisher'),
                     __('December', 'woocommerce-product-unpublisher'),
                 ),
+
+                'dateFormat' => get_option('date_format'),
+                'timeFormat' => get_option('time_format'),
+
+                'now' => array_map(
+                    'intval',
+                    explode(
+                        ',',
+                        current_datetime()->format('Y,n,j,G,i')
+                    )
+                ),
+
+                'unpublishLabel' => __(
+                    'Unpublish on:',
+                    'woocommerce-product-unpublisher'
+                ),
+
+                'removalPending' => __(
+                    'Schedule will be removed when you update.',
+                    'woocommerce-product-unpublisher'
+                ),
             )
         );
     }
@@ -183,10 +199,9 @@ final class WPU_Admin
      */
     private function date_parts($timestamp): array
     {
-
         $timestamp = $timestamp
             ? (int) $timestamp
-            : current_time('timestamp');
+            : current_datetime()->getTimestamp();
 
         return array(
             wp_date('m', $timestamp, wp_timezone()),
@@ -254,27 +269,51 @@ final class WPU_Admin
 
 ?>
 
+
         <div
-            class="misc-pub-section misc-pub-curtime"
+            class="misc-pub-section curtime misc-pub-curtime"
             id="wpu-publish-row">
 
             <span
                 class="dashicons dashicons-calendar-alt"
                 aria-hidden="true"></span>
 
-            <strong id="wpu-label">
-                <?php echo esc_html($label); ?>
-            </strong>
+            <span id="wpu-timestamp">
 
-            <span id="wpu-current-value">
-                <?php echo esc_html($display); ?>
+                <span id="wpu-label">
+                    <?php echo esc_html($label); ?>
+                </span>
+
+                <strong id="wpu-current-value">
+                    <?php
+                    echo esc_html(
+                        $timestamp
+                            ? wp_date(
+                                get_option('date_format') . ' \a\t ' . get_option('time_format'),
+                                $timestamp,
+                                wp_timezone()
+                            )
+                            : __('Not scheduled', 'woocommerce-product-unpublisher')
+                    );
+                    ?>
+                </strong>
+
             </span>
 
             <a
                 href="#wpu-edit"
-                class="edit-timestamp"
-                id="wpu-edit-toggle">
-                <?php esc_html_e('Edit', 'woocommerce-product-unpublisher'); ?>
+                class="edit-timestamp hide-if-no-js"
+                id="wpu-edit-toggle"
+                role="button">
+
+                <span aria-hidden="true">
+                    <?php esc_html_e('Edit', 'woocommerce-product-unpublisher'); ?>
+                </span>
+
+                <span class="screen-reader-text">
+                    <?php esc_html_e('Edit unpublishing date and time', 'woocommerce-product-unpublisher'); ?>
+                </span>
+
             </a>
 
             <input
@@ -283,151 +322,153 @@ final class WPU_Admin
                 id="wpu_action"
                 value="" />
 
-            <div id="wpu-edit-panel" hidden>
+            <fieldset
+                id="wpu-edit-panel"
+                hidden>
 
-                <fieldset class="wpu-fields">
+                <legend class="screen-reader-text">
+                    <?php esc_html_e('Unpublishing date and time', 'woocommerce-product-unpublisher'); ?>
+                </legend>
 
-                    <legend class="screen-reader-text">
-                        <?php
-                        esc_html_e(
-                            'Unpublishing date and time',
-                            'woocommerce-product-unpublisher'
-                        );
-                        ?>
-                    </legend>
+                <div class="timestamp-wrap">
 
-                    <div class="wpu-date-fields">
-
-                        <label
-                            class="screen-reader-text"
-                            for="wpu_mm">
+                    <label>
+                        <span class="screen-reader-text">
                             <?php esc_html_e('Month', 'woocommerce-product-unpublisher'); ?>
-                        </label>
+                        </span>
 
                         <select
                             id="wpu_mm"
-                            name="wpu_mm">
+                            name="wpu_mm"
+                            class="form-required">
 
                             <?php foreach ($months as $number => $month) : ?>
 
                                 <option
                                     value="<?php echo esc_attr($number); ?>"
                                     <?php selected($parts[0], $number); ?>>
-                                    <?php echo esc_html($month); ?>
+
+                                    <?php echo esc_html($number . '-' . substr($month, 0, 3)); ?>
+
                                 </option>
 
                             <?php endforeach; ?>
 
                         </select>
+                    </label>
 
-                        <label
-                            class="screen-reader-text"
-                            for="wpu_jj">
+                    <label>
+                        <span class="screen-reader-text">
                             <?php esc_html_e('Day', 'woocommerce-product-unpublisher'); ?>
-                        </label>
+                        </span>
 
                         <input
                             type="text"
                             id="wpu_jj"
                             name="wpu_jj"
                             value="<?php echo esc_attr($parts[1]); ?>"
+                            size="2"
                             maxlength="2"
+                            autocomplete="off"
+                            class="form-required"
                             inputmode="numeric" />
+                    </label>,
 
-                        <span>,</span>
-
-                        <label
-                            class="screen-reader-text"
-                            for="wpu_aa">
+                    <label>
+                        <span class="screen-reader-text">
                             <?php esc_html_e('Year', 'woocommerce-product-unpublisher'); ?>
-                        </label>
+                        </span>
 
                         <input
                             type="text"
                             id="wpu_aa"
                             name="wpu_aa"
                             value="<?php echo esc_attr($parts[2]); ?>"
+                            size="4"
                             maxlength="4"
+                            autocomplete="off"
+                            class="form-required"
                             inputmode="numeric" />
+                    </label>
 
-                    </div>
+                    <?php esc_html_e('at', 'woocommerce-product-unpublisher'); ?>
 
-                    <div class="wpu-time-fields">
-
-                        <span>
-                            <?php esc_html_e('at', 'woocommerce-product-unpublisher'); ?>
-                        </span>
-
-                        <label
-                            class="screen-reader-text"
-                            for="wpu_hh">
+                    <label>
+                        <span class="screen-reader-text">
                             <?php esc_html_e('Hour', 'woocommerce-product-unpublisher'); ?>
-                        </label>
+                        </span>
 
                         <input
                             type="text"
                             id="wpu_hh"
                             name="wpu_hh"
                             value="<?php echo esc_attr($parts[3]); ?>"
+                            size="2"
                             maxlength="2"
+                            autocomplete="off"
+                            class="form-required"
                             inputmode="numeric" />
-
-                        <span>:</span>
-
-                        <label
-                            class="screen-reader-text"
-                            for="wpu_mn">
+                    </label>:<label>
+                        <span class="screen-reader-text">
                             <?php esc_html_e('Minute', 'woocommerce-product-unpublisher'); ?>
-                        </label>
+                        </span>
 
                         <input
                             type="text"
                             id="wpu_mn"
                             name="wpu_mn"
                             value="<?php echo esc_attr($parts[4]); ?>"
+                            size="2"
                             maxlength="2"
+                            autocomplete="off"
+                            class="form-required"
                             inputmode="numeric" />
+                    </label>
 
-                    </div>
+                </div>
 
-                    <p
-                        id="wpu-error"
-                        class="wpu-error"
-                        role="alert"
-                        hidden></p>
+                <p
+                    id="wpu-error"
+                    class="wpu-error"
+                    role="alert"
+                    hidden></p>
 
-                    <p class="wpu-actions">
+                <p>
 
-                        <button
-                            type="button"
-                            class="button button-primary button-small"
-                            id="wpu-ok">
-                            <?php esc_html_e('OK', 'woocommerce-product-unpublisher'); ?>
-                        </button>
+                    <a
+                        href="#wpu-save"
+                        class="save-timestamp button"
+                        id="wpu-ok">
+
+                        <?php esc_html_e('OK', 'woocommerce-product-unpublisher'); ?>
+
+                    </a>
+
+                    <a
+                        href="#wpu-cancel"
+                        class="cancel-timestamp button-cancel"
+                        id="wpu-cancel">
+
+                        <?php esc_html_e('Cancel', 'woocommerce-product-unpublisher'); ?>
+
+                    </a>
+
+                    <?php if ($timestamp) : ?>
 
                         <a
-                            href="#wpu-cancel"
-                            class="cancel-timestamp"
-                            id="wpu-cancel">
-                            <?php esc_html_e('Cancel', 'woocommerce-product-unpublisher'); ?>
+                            href="#wpu-remove"
+                            class="wpu-remove"
+                            id="wpu-remove">
+
+                            <?php esc_html_e('Remove schedule', 'woocommerce-product-unpublisher'); ?>
+
                         </a>
 
-                        <?php if ($timestamp) : ?>
+                    <?php endif; ?>
 
-                            <a
-                                href="#wpu-remove"
-                                class="wpu-remove"
-                                id="wpu-remove">
-                                <?php esc_html_e('Remove schedule', 'woocommerce-product-unpublisher'); ?>
-                            </a>
+                </p>
 
-                        <?php endif; ?>
-
-                    </p>
-
-                </fieldset>
-
-            </div>
+            </fieldset>
 
         </div>
 
@@ -671,23 +712,6 @@ final class WPU_Admin
     }
 
     /**
-     * Add the unpublishing column to the product list.
-     *
-     * @param array $columns Existing columns.
-     * @return array
-     */
-    public function add_column($columns): array
-    {
-
-        $columns['wpu_unpublish'] = __(
-            'Unpublish on',
-            'woocommerce-product-unpublisher'
-        );
-
-        return $columns;
-    }
-
-    /**
      * Display the scheduled date in the product list.
      *
      * @param string $column     Column name.
@@ -730,7 +754,7 @@ final class WPU_Admin
     {
 
         $actions['wpu_draft_now'] = __(
-            'Move selected published products to Draft now',
+            'Move Published to Draft now',
             'woocommerce-product-unpublisher'
         );
 

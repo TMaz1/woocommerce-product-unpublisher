@@ -33,7 +33,9 @@
         var savedValues = getValues();
         var savedText = $current.text();
         var savedLabel = $label.text();
-        var savedAction = '';
+        var savedAction = $action.val();
+
+        var monthNames = wpuAdmin.monthNames;
 
         function getValues() {
             return fields.map(function ($field) {
@@ -60,8 +62,6 @@
         }
 
         function showError(message) {
-            clearErrors();
-
             fields.forEach(function ($field) {
                 $field
                     .addClass('wpu-invalid')
@@ -78,7 +78,9 @@
         }
 
         function getDateParts() {
-            var values = getValues().map(Number);
+            var values = getValues().map(function (value) {
+                return /^\d+$/.test(value) ? Number(value) : NaN;
+            });
 
             if (!values.every(Number.isInteger)) {
                 return null;
@@ -122,6 +124,38 @@
             };
         }
 
+        /*
+         * Compare against WordPress-local time.
+         *
+         * This avoids relying on the visitor's browser timezone.
+         */
+
+        function isFutureDate(date) {
+            var selected = [
+                date.year,
+                date.month,
+                date.day,
+                date.hour,
+                date.minute
+            ];
+
+            var now = wpuAdmin.now;
+
+            for (var i = 0; i < selected.length; i++) {
+
+                if (selected[i] > now[i]) {
+                    return true;
+                }
+
+                if (selected[i] < now[i]) {
+                    return false;
+                }
+            }
+
+            // Reject the current minute as well.
+            return false;
+        }
+
         function validate() {
             clearErrors();
 
@@ -131,24 +165,70 @@
                 return showError(wpuAdmin.invalid);
             }
 
+            if (!isFutureDate(date)) {
+                return showError(wpuAdmin.past);
+            }
+
             return true;
         }
 
+        /*
+         * Format dates using the WordPress site settings.
+         *
+         * Supports the common PHP date() format characters
+         * used by WordPress date and time settings.
+         */
+
         function formatDate(date) {
-            var month = wpuAdmin.monthNames[date.month - 1];
 
-            var day = String(date.day).padStart(2, '0');
-            var hour = String(date.hour).padStart(2, '0');
-            var minute = String(date.minute).padStart(2, '0');
+            var values = {
+                j: date.day,
+                d: String(date.day).padStart(2, '0'),
+                F: monthNames[date.month - 1],
+                M: monthNames[date.month - 1].substring(0, 3),
+                n: date.month,
+                m: String(date.month).padStart(2, '0'),
+                Y: date.year,
+                y: String(date.year).slice(-2),
 
-            return month + ' ' +
-                day + ', ' +
-                date.year + ' ' +
-                wpuAdmin.at + ' ' +
-                hour + ':' + minute;
+                G: date.hour,
+                H: String(date.hour).padStart(2, '0'),
+                g: date.hour % 12 || 12,
+                h: String(date.hour % 12 || 12).padStart(2, '0'),
+
+                i: String(date.minute).padStart(2, '0'),
+
+                a: date.hour < 12 ? 'am' : 'pm',
+                A: date.hour < 12 ? 'AM' : 'PM'
+            };
+
+            function applyFormat(format) {
+
+                return format.replace(
+                    /\\(.)|([a-zA-Z])/g,
+                    function (match, escaped, token) {
+
+                        if (escaped) {
+                            return escaped;
+                        }
+
+                        return Object.prototype.hasOwnProperty.call(
+                            values,
+                            token
+                        )
+                            ? values[token]
+                            : token;
+                    }
+                );
+            }
+
+            return applyFormat(wpuAdmin.dateFormat) +
+                ' at ' +
+                applyFormat(wpuAdmin.timeFormat);
         }
 
         function openEditor() {
+
             savedValues = getValues();
             savedText = $current.text();
             savedLabel = $label.text();
@@ -167,12 +247,26 @@
             $edit.show();
         }
 
+        /*
+         * Edit
+         */
+
         $edit.on('click', function (event) {
             event.preventDefault();
             openEditor();
         });
 
-        $('#wpu-ok').on('click', function () {
+        /*
+         * OK
+         *
+         * Updates the preview only.
+         * Actual saving happens through the normal
+         * WordPress product Update button.
+         */
+
+        $('#wpu-ok').on('click', function (event) {
+
+            event.preventDefault();
 
             if (!validate()) {
                 return;
@@ -184,10 +278,19 @@
 
             $current.text(formatDate(date));
 
-            $label.text('Unpublish on:');
+            $label.text(
+                wpuAdmin.unpublishLabel
+            );
 
             closeEditor();
         });
+
+        /*
+         * Cancel
+         *
+         * Restores the state from when the editor
+         * was opened.
+         */
 
         $('#wpu-cancel').on('click', function (event) {
 
@@ -205,6 +308,13 @@
             closeEditor();
         });
 
+        /*
+         * Remove
+         *
+         * Removal is committed only when the
+         * product is subsequently updated.
+         */
+
         $('#wpu-remove').on('click', function (event) {
 
             event.preventDefault();
@@ -216,15 +326,21 @@
             $action.val('remove');
 
             $current.text(
-                'Schedule will be removed when you update.'
+                wpuAdmin.removalPending
             );
 
             closeEditor();
         });
 
+        /*
+         * Input changes
+         */
+
         fields.forEach(function ($field) {
 
-            $field.on('input change', clearErrors);
+            $field.on('input change', function () {
+                clearErrors();
+            });
 
             $field.on('keydown', function (event) {
 
@@ -232,15 +348,28 @@
                     event.preventDefault();
                     $('#wpu-ok').trigger('click');
                 }
+
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    $('#wpu-cancel').trigger('click');
+                }
             });
         });
 
+        /*
+         * Final server submission.
+         *
+         * PHP still performs the authoritative
+         * date validation and scheduling.
+         */
+
         $form.on('submit', function (event) {
 
-            if (
-                $action.val() === 'save' &&
-                !validate()
-            ) {
+            if ($action.val() !== 'save') {
+                return;
+            }
+
+            if (!validate()) {
 
                 event.preventDefault();
 
