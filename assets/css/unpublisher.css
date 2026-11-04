@@ -1,0 +1,116 @@
+/*
+ * WooCommerce Product Unpublisher
+ * Classic WordPress editor styling
+ */
+
+#wpu-publish-row {
+    position: relative;
+}
+
+#wpu-publish-row .dashicons {
+    color: #646970;
+    vertical-align: middle;
+}
+
+#wpu-publish-row #wpu-label {
+    margin-right: 2px;
+}
+
+#wpu-publish-row #wpu-current-value {
+    display: inline;
+}
+
+#wpu-publish-row #wpu-edit-toggle {
+    margin-left: 4px;
+}
+
+#wpu-publish-row #wpu-edit-panel {
+    margin-top: 8px;
+}
+
+#wpu-publish-row #wpu-edit-panel[hidden] {
+    display: none;
+}
+
+#wpu-publish-row .wpu-fields {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+#wpu-publish-row .wpu-date-fields,
+#wpu-publish-row .wpu-time-fields {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+#wpu-publish-row .wpu-fields select,
+#wpu-publish-row .wpu-fields input {
+    box-sizing: border-box;
+    min-height: 28px;
+    height: 28px;
+    padding: 0 5px;
+    margin: 0;
+    vertical-align: middle;
+    font-size: 13px;
+}
+
+#wpu-publish-row #wpu_mm {
+    width: 115px;
+    max-width: 100%;
+}
+
+#wpu-publish-row #wpu_jj,
+#wpu-publish-row #wpu_hh,
+#wpu-publish-row #wpu_mn {
+    width: 38px;
+}
+
+#wpu-publish-row #wpu_aa {
+    width: 58px;
+}
+
+#wpu-publish-row .wpu-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 8px 0 0;
+}
+
+#wpu-publish-row .wpu-actions .button {
+    margin: 0;
+}
+
+#wpu-publish-row .wpu-actions a {
+    text-decoration: none;
+}
+
+#wpu-publish-row .wpu-remove {
+    color: #b32d2e;
+    margin-left: auto;
+}
+
+#wpu-publish-row .wpu-remove:hover {
+    color: #8a2424;
+}
+
+#wpu-publish-row .wpu-error {
+    color: #b32d2e;
+    margin: 8px 0;
+}
+
+#wpu-publish-row .wpu-invalid {
+    border-color: #d63638 !important;
+    box-shadow: 0 0 0 1px #d63638 !important;
+}
+
+#wpu-publish-row input:focus,
+#wpu-publish-row select:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: 2px solid transparent;
+}
