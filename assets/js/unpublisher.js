@@ -365,18 +365,31 @@
 
         $form.on('submit', function (event) {
 
-            if ($action.val() !== 'save') {
+            var action = $action.val();
+
+            // Removal is handled separately by PHP.
+            if (action === 'remove') {
                 return;
             }
 
-            if (!validate()) {
+            // Validate whenever the editor contains a date
+            // that is intended to be saved.
+            //
+            // This includes clicking Update without clicking OK.
+            if (action === 'save' || !$panel.prop('hidden')) {
 
-                event.preventDefault();
+                if (!validate()) {
 
-                $panel.prop('hidden', false);
-                $edit.hide();
+                    event.preventDefault();
 
-                return false;
+                    $panel.prop('hidden', false);
+                    $edit.hide();
+
+                    return false;
+                }
+
+                // Ensure PHP knows this is a schedule save.
+                $action.val('save');
             }
         });
 

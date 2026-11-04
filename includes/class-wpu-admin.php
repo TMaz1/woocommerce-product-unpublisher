@@ -517,17 +517,35 @@ final class WPU_Admin
             ? sanitize_key(wp_unslash($_POST['wpu_action']))
             : '';
 
-        if ('' === $action) {
-            return;
-        }
 
         if ('remove' === $action) {
 
-            $this->scheduler->remove_schedule($post_id);
+            if ($this->scheduler->remove_schedule($post_id)) {
+
+                $this->notice(
+                    $post_id,
+                    __(
+                        'The product unpublishing schedule has been removed.',
+                        'woocommerce-product-unpublisher'
+                    ),
+                    'success'
+                );
+            } else {
+
+                $this->notice(
+                    $post_id,
+                    __(
+                        'Could not completely remove the unpublishing schedule. Please try again.',
+                        'woocommerce-product-unpublisher'
+                    ),
+                    'error'
+                );
+            }
 
             return;
         }
 
+        // No action means the user is updating the product without changing its unpublishing schedule.
         if ('save' !== $action) {
             return;
         }
@@ -540,10 +558,12 @@ final class WPU_Admin
             )
         ) {
             $this->notice(
+                $post_id,
                 __(
                     'Only published or scheduled products can have an unpublishing schedule.',
                     'woocommerce-product-unpublisher'
-                )
+                ),
+                'error'
             );
 
             return;
@@ -566,10 +586,12 @@ final class WPU_Admin
                 ! is_string($_POST[$key])
             ) {
                 $this->notice(
+                    $post_id,
                     __(
                         'The unpublishing date is incomplete. The previous schedule was retained.',
                         'woocommerce-product-unpublisher'
-                    )
+                    ),
+                    'error'
                 );
 
                 return;
@@ -581,10 +603,12 @@ final class WPU_Admin
 
             if (! preg_match('/^\d+$/', $raw)) {
                 $this->notice(
+                    $post_id,
                     __(
                         'The unpublishing date contains invalid values. The previous schedule was retained.',
                         'woocommerce-product-unpublisher'
-                    )
+                    ),
+                    'error'
                 );
 
                 return;
@@ -597,10 +621,12 @@ final class WPU_Admin
 
         if (! $timestamp) {
             $this->notice(
+                $post_id,
                 __(
                     'Choose a valid unpublishing date and time in the future. The previous schedule was retained.',
                     'woocommerce-product-unpublisher'
-                )
+                ),
+                'error'
             );
 
             return;
@@ -618,10 +644,12 @@ final class WPU_Admin
                 $timestamp <= $publish_timestamp
             ) {
                 $this->notice(
+                    $post_id,
                     __(
                         'Unpublishing must be later than scheduled publication. The previous schedule was retained.',
                         'woocommerce-product-unpublisher'
-                    )
+                    ),
+                    'error'
                 );
 
                 return;
@@ -634,28 +662,94 @@ final class WPU_Admin
                 $timestamp
             )
         ) {
+
             $this->notice(
+                $post_id,
                 __(
-                    'Could not schedule unpublishing. Check WordPress cron configuration.',
+                    'Could not schedule unpublishing. Check WordPress cron configuration. Your previous schedule may have been retained.',
                     'woocommerce-product-unpublisher'
-                )
+                ),
+                'error'
             );
+
+            return;
         }
+
+        // Format using the WordPress site timezone.
+        $formatted_date = wp_date(
+            'M j, Y \@ H:i',
+            $timestamp,
+            wp_timezone()
+        );
+
+        // Get the product preview URL.
+        $preview_url = get_preview_post_link($post_id);
+
+        // Build the success message.
+        $message = sprintf(
+            /* translators: 1: date, 2: preview link */
+            __(
+                'Product scheduled unpublishing for: %1$s. %2$s',
+                'woocommerce-product-unpublisher'
+            ),
+            esc_html($formatted_date),
+            $preview_url
+                ? sprintf(
+                    '<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
+                    esc_url($preview_url),
+                    esc_html__(
+                        'Preview product',
+                        'woocommerce-product-unpublisher'
+                    )
+                )
+                : ''
+        );
+
+        $this->notice(
+            $post_id,
+            $message,
+            'success'
+        );
     }
 
     /**
-     * Store an admin notice for the current user.
+     * Store an admin notice for a specific product.
      *
+     * @param int    $post_id Post ID.
      * @param string $message Notice message.
+     * @param string $type    Notice type.
      * @return void
      */
-    private function notice(string $message): void
-    {
+    private function notice(
+        int $post_id,
+        string $message,
+        string $type = 'error'
+    ): void {
+
+        $allowed_types = array(
+            'success',
+            'error',
+            'warning',
+            'info',
+        );
+
+        if (! in_array($type, $allowed_types, true)) {
+            $type = 'error';
+        }
+
+        $key = sprintf(
+            'wpu_notice_%d_%d',
+            get_current_user_id(),
+            $post_id
+        );
 
         set_transient(
-            'wpu_notice_' . get_current_user_id(),
-            $message,
-            MINUTE_IN_SECONDS
+            $key,
+            array(
+                'message' => $message,
+                'type'    => $type,
+            ),
+            5 * MINUTE_IN_SECONDS
         );
     }
 
@@ -667,28 +761,66 @@ final class WPU_Admin
     public function notices(): void
     {
 
+        if (! is_admin()) {
+            return;
+        }
+
+        $screen = get_current_screen();
+
         if (
-            ! is_admin() ||
-            ! current_user_can('edit_products')
+            ! $screen instanceof WP_Screen ||
+            'product' !== $screen->post_type
         ) {
             return;
         }
 
-        $key = 'wpu_notice_' . get_current_user_id();
+        // Individual product notices.
+        if (
+            isset($_GET['post']) &&
+            current_user_can('edit_products')
+        ) {
 
-        $message = get_transient($key);
-
-        if ($message) {
-
-            delete_transient($key);
-
-            printf(
-                '<div class="notice notice-error is-dismissible"><p>%s</p></div>',
-                esc_html($message)
+            $post_id = absint(
+                wp_unslash($_GET['post'])
             );
+
+            if ($post_id && current_user_can('edit_post', $post_id)) {
+
+                $key = sprintf(
+                    'wpu_notice_%d_%d',
+                    get_current_user_id(),
+                    $post_id
+                );
+
+                $notice = get_transient($key);
+
+                if (is_array($notice)) {
+
+                    delete_transient($key);
+
+                    $type = isset($notice['type'])
+                        ? sanitize_html_class($notice['type'])
+                        : 'error';
+
+                    $message = isset($notice['message'])
+                        ? $notice['message']
+                        : '';
+
+                    printf(
+                        '<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>',
+                        esc_attr($type),
+                        wp_kses_post($message)
+                    );
+                }
+            }
         }
 
-        if (isset($_GET['wpu_bulk_done'])) {
+        // Bulk action notices.
+        if (
+            'edit' === $screen->base &&
+            isset($_GET['wpu_bulk_done']) &&
+            current_user_can('edit_products')
+        ) {
 
             $count = absint(
                 wp_unslash($_GET['wpu_bulk_done'])
