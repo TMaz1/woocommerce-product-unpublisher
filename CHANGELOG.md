@@ -16,12 +16,20 @@ All notable changes to WooCommerce Product Unpublisher will be documented in thi
 
 ### Improved
 
+ #### [2.0.1]
 - Improved cron event registration and verification.
 - Improved cron event cleanup and schedule restoration.
 - Added logging for failed schedule registration, restoration and cleanup operations.
 - Improved retry handling and failure reporting for scheduled unpublishing.
 - Improved consistency checks between stored schedule metadata and registered cron events.
 - Updated admin JavaScript to handle date validation, schedule saving and removal more reliably.
+
+ #### [2.0.2]
+- Move the Unpublish on control above WooCommerce Catalogue visibility.
+- Add WordPress-style slide animations when opening and closing the unpublishing date editor.
+- Respect reduced-motion accessibility preferences.
+- Allow first-time users to undo an unsaved unpublishing date selection without confirmation.
+- Improve schedule removal visibility and editor accessibility.
 
 ### Development
 

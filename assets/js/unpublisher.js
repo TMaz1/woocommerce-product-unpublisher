@@ -35,7 +35,15 @@
         var savedLabel = $label.text();
         var savedAction = $action.val();
 
+        var hadExistingSchedule =
+            $current.text().trim() !== wpuAdmin.notScheduled;
+
         var monthNames = wpuAdmin.monthNames;
+
+        // Respect the user's reduced-motion preference
+        var animationDuration = window.matchMedia(
+            '(prefers-reduced-motion: reduce)'
+        ).matches ? 0 : 150;
 
         function getValues() {
             return fields.map(function ($field) {
@@ -227,6 +235,53 @@
                 applyFormat(wpuAdmin.timeFormat);
         }
 
+        /*
+         * Show the editor.
+         */
+        function showPanel() {
+
+            var needsAnimation =
+                $panel.prop('hidden') || !$panel.is(':visible');
+
+            $panel
+                .stop(true, true)
+                .removeAttr('hidden');
+
+            if (needsAnimation) {
+                $panel
+                    .hide()
+                    .slideDown(animationDuration);
+            }
+
+            $edit
+                .attr('aria-expanded', 'true')
+                .hide();
+
+            fields[0].trigger('focus');
+        }
+
+        /*
+         * Hide the editor.
+         */
+        function hidePanel() {
+
+            $panel
+                .stop(true, true)
+                .slideUp(animationDuration, function () {
+
+                    $(this).prop('hidden', true);
+
+                });
+
+            $edit
+                .attr('aria-expanded', 'false')
+                .show()
+                .trigger('focus');
+        }
+
+        /*
+         * Open editor and remember existing values.
+         */
         function openEditor() {
 
             savedValues = getValues();
@@ -236,15 +291,20 @@
 
             clearErrors();
 
-            $panel.prop('hidden', false);
-            $edit.hide();
+            $('#wpu-remove').prop(
+                'hidden',
+                savedText.trim() === wpuAdmin.notScheduled
+            );
 
-            fields[0].trigger('focus');
+            showPanel();
         }
 
+        /*
+         * Close editor.
+         */
         function closeEditor() {
-            $panel.prop('hidden', true);
-            $edit.show();
+
+            hidePanel();
         }
 
         /*
@@ -319,15 +379,39 @@
 
             event.preventDefault();
 
+            /*
+             * First-time schedule:
+             * Nothing has been saved to the database.
+             * Simply discard the preview.
+             */
+            if (!hadExistingSchedule) {
+
+                setValues(savedValues);
+
+                $current.text(wpuAdmin.notScheduled);
+
+                $label.text(wpuAdmin.unpublishLabel);
+
+                $action.val('');
+
+                clearErrors();
+
+                closeEditor();
+
+                return;
+            }
+
+            /*
+             * Existing schedule:
+             * Preserve the normal removal confirmation.
+             */
             if (!window.confirm(wpuAdmin.confirmRemove)) {
                 return;
             }
 
             $action.val('remove');
 
-            $current.text(
-                wpuAdmin.removalPending
-            );
+            $current.text(wpuAdmin.removalPending);
 
             closeEditor();
         });
@@ -382,8 +466,7 @@
 
                     event.preventDefault();
 
-                    $panel.prop('hidden', false);
-                    $edit.hide();
+                    showPanel();
 
                     return false;
                 }

@@ -32,7 +32,8 @@ final class WPU_Admin
 
         add_action(
             'post_submitbox_misc_actions',
-            array($this, 'render_row')
+            array($this, 'render_row'),
+            4
         );
 
         add_action(
@@ -187,6 +188,11 @@ final class WPU_Admin
                     'Schedule will be removed when you update.',
                     'woocommerce-product-unpublisher'
                 ),
+
+                'notScheduled' => __(
+                    'Not scheduled',
+                    'woocommerce-product-unpublisher'
+                ),
             )
         );
     }
@@ -304,7 +310,9 @@ final class WPU_Admin
                 href="#wpu-edit"
                 class="edit-timestamp hide-if-no-js"
                 id="wpu-edit-toggle"
-                role="button">
+                role="button"
+                aria-expanded="false"
+                aria-controls="wpu-edit-panel">
 
                 <span aria-hidden="true">
                     <?php esc_html_e('Edit', 'woocommerce-product-unpublisher'); ?>
@@ -453,18 +461,15 @@ final class WPU_Admin
 
                     </a>
 
-                    <?php if ($timestamp) : ?>
+                    <a
+                        href="#wpu-remove"
+                        class="wpu-remove"
+                        id="wpu-remove"
+                        <?php echo $timestamp ? '' : 'hidden'; ?>>
 
-                        <a
-                            href="#wpu-remove"
-                            class="wpu-remove"
-                            id="wpu-remove">
+                        <?php esc_html_e('Remove schedule', 'woocommerce-product-unpublisher'); ?>
 
-                            <?php esc_html_e('Remove schedule', 'woocommerce-product-unpublisher'); ?>
-
-                        </a>
-
-                    <?php endif; ?>
+                    </a>
 
                 </p>
 

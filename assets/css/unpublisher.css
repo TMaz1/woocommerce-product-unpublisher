@@ -31,13 +31,6 @@
     left: 2px;
 }
 
-#wpu-publish-row #wpu-timestamp {
-    display: inline;
-    position: relative;
-    top: 3px;
-    left: 2px;
-}
-
 #wpu-publish-row #wpu-label {
     font-weight: 400;
 }
@@ -149,6 +142,8 @@
     margin-left: auto;
     color: #b32d2e;
     text-decoration: none;
+    position: relative;
+    right: 25px;
 }
 
 #wpu-publish-row .wpu-remove:hover {
@@ -211,5 +206,9 @@
 
     #wpu-publish-row #wpu-edit-panel>p:last-child {
         gap: 15px;
+    }
+
+    #wpu-publish-row .wpu-remove {
+        right: 5px;
     }
 }
