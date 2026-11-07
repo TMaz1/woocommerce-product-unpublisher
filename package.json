@@ -1,0 +1,22 @@
+{
+  "name": "woocommerce-product-unpublisher",
+  "version": "2.1.0",
+  "private": true,
+  "description": "Development tooling for WooCommerce Product Unpublisher.",
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "test:js": "jest",
+    "test:fixture": "playwright test --config=playwright.fixture.config.js",
+    "test:e2e": "playwright test --config=playwright.config.js",
+    "env:start": "wp-env start",
+    "env:stop": "wp-env stop",
+    "lint:js": "node --check assets/js/date-utils.js && node --check assets/js/bulk-edit.js && node --check assets/js/unpublisher.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@wordpress/env": "^10.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jquery": "^3.7.1"
+  }
+}

@@ -1,0 +1,142 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  php-lint:
+    name: PHP lint (${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Lint every PHP file
+        run: |
+          find . -name '*.php' -not -path './vendor/*' -not -path './node_modules/*' -print0 \
+            | xargs -0 -n1 -P4 php -l > /dev/null
+
+  phpcs:
+    name: PHPCS (security / i18n / compatibility)
+    runs-on: ubuntu-latest
+    continue-on-error: true # advisory until the ruleset has been run against the codebase
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - run: composer install --no-progress --prefer-dist
+      - run: composer phpcs
+
+  phpunit-unit:
+    name: PHPUnit unit (${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - run: composer install --no-progress --prefer-dist
+      - run: composer test
+
+  phpunit-integration:
+    name: PHPUnit + WordPress suite (WP ${{ matrix.wp }}, PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { php: '8.2', wp: '6.5' }
+          - { php: '8.3', wp: 'latest' }
+          - { php: '8.4', wp: 'latest' }
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mysqli
+          coverage: none
+      - run: sudo apt-get update && sudo apt-get install -y subversion
+      - run: composer install --no-progress --prefer-dist
+      - name: Install WordPress test suite
+        run: bin/install-wp-tests.sh wordpress_test root root 127.0.0.1:3306 ${{ matrix.wp }}
+      - run: composer test:integration -- --configuration phpunit.integration.xml.dist
+
+  javascript:
+    name: JavaScript (Jest + browser fixtures)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npm run lint:js
+      - run: npm run test:js
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:fixture
+
+  e2e:
+    name: E2E (Playwright + wp-env + WooCommerce)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npx wp-env start
+      - name: Wait for WordPress
+        run: curl --retry 20 --retry-delay 3 --retry-connrefused -fsS http://localhost:8889/wp-login.php > /dev/null
+      - run: npm run test:e2e
+      - name: Upload traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/
+
+  package:
+    name: Build plugin ZIP
+    runs-on: ubuntu-latest
+    needs: [php-lint, phpunit-unit, javascript]
+    steps:
+      - uses: actions/checkout@v4
+      - run: bin/build-zip.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: woocommerce-product-unpublisher
+          path: dist/*.zip

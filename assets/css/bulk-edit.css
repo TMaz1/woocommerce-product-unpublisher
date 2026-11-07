@@ -1,0 +1,77 @@
+/* Bulk Edit controls on the Products list. */
+
+.wpu-bulk-edit {
+    clear: both;
+    margin-top: 8px;
+}
+
+.wpu-bulk-edit fieldset {
+    margin: 0 0 6px;
+}
+
+.wpu-bulk-edit .wpu-bulk-legend {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.wpu-bulk-edit label {
+    display: block;
+    margin: 2px 0;
+}
+
+.wpu-bulk-edit .timestamp-wrap label {
+    display: inline-flex;
+    width: auto;
+    margin: 0 1px;
+}
+
+.wpu-bulk-edit .timestamp-wrap select,
+.wpu-bulk-edit .timestamp-wrap input[type="text"] {
+    box-sizing: border-box;
+    height: 28px;
+    margin: 0;
+    vertical-align: middle;
+    font-size: 12px;
+}
+
+.wpu-bulk-edit .timestamp-wrap input[type="text"] {
+    text-align: center;
+    padding: 0 2px;
+}
+
+.wpu-bulk-edit input[name="wpu_bulk_jj"],
+.wpu-bulk-edit input[name="wpu_bulk_hh"],
+.wpu-bulk-edit input[name="wpu_bulk_mn"] {
+    width: 2.2rem;
+}
+
+.wpu-bulk-edit input[name="wpu_bulk_aa"] {
+    width: 3.2rem;
+}
+
+.wpu-bulk-edit .wpu-bulk-date-fields[hidden] {
+    display: none;
+}
+
+.wpu-bulk-edit .wpu-error {
+    color: #b32d2e;
+    margin: 6px 0;
+}
+
+.wpu-bulk-edit .wpu-invalid {
+    border-color: #d63638;
+    box-shadow: 0 0 2px rgba(214, 54, 56, .8);
+}
+
+/* List column states. */
+
+.column-wpu_unpublish .wpu-overdue,
+.column-wpu_unpublish .wpu-failed {
+    color: #b32d2e;
+    font-weight: 600;
+}
+
+.wpu-bulk-problems {
+    list-style: disc;
+    margin: 0 0 8px 2em;
+}
