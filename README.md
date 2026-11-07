@@ -64,11 +64,3 @@ A Docker-based manual environment is also provided (`docker compose up`, then ht
 ```bash
 bin/build-zip.sh      # writes dist/woocommerce-product-unpublisher-<version>.zip
 ```
-
-## Before submitting to WordPress.org
-
-- The plugin name begins with "WooCommerce". WordPress.org restricts trademarked names in plugin names/slugs unless you represent the trademark owner; consider a name such as "Product Unpublisher for WooCommerce" and update the slug and text domain together.
-- Add the `Tested up to:` header to readme.txt after testing against the current WordPress release.
-- Add a `languages/` POT file (`wp i18n make-pot . languages/woocommerce-product-unpublisher.pot`).
-- Replace the placeholder `Contributors` value with a real wordpress.org username.
-- Run `composer phpcs` and the Plugin Check plugin against the built ZIP.
