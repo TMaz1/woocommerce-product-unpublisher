@@ -71,6 +71,13 @@
     font-weight: 600;
 }
 
+/* Products list: Unpublishes column */
+.wp-list-table th.column-wpu_unpublish,
+.wp-list-table td.column-wpu_unpublish {
+    width: 90px;
+    min-width: 90px;
+}
+
 .wpu-bulk-problems {
     list-style: disc;
     margin: 0 0 8px 2em;

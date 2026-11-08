@@ -41,12 +41,14 @@ final class ScheduleDateParser {
 			$key = $prefix . $suffix;
 
 			if ( ! isset( $source[ $key ] ) || ! is_string( $source[ $key ] ) ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exceptions are caught and converted to translated admin notices.
 				throw new InvalidScheduleDateException( InvalidScheduleDateException::INCOMPLETE );
 			}
 
 			$raw = trim( $source[ $key ] );
 
 			if ( 1 !== preg_match( '/^\d{1,4}$/', $raw ) ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exceptions are caught and converted to translated admin notices.
 				throw new InvalidScheduleDateException( InvalidScheduleDateException::INVALID );
 			}
 
@@ -76,6 +78,7 @@ final class ScheduleDateParser {
 			$hour < 0 || $hour > 23 ||
 			$minute < 0 || $minute > 59
 		) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exceptions are caught and converted to translated admin notices.
 			throw new InvalidScheduleDateException( InvalidScheduleDateException::INVALID );
 		}
 
@@ -88,12 +91,14 @@ final class ScheduleDateParser {
 			LocalTimeCodec::has_errors() ||
 			$date->format( 'Y-m-d H:i:s' ) !== $value
 		) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exceptions are caught and converted to translated admin notices.
 			throw new InvalidScheduleDateException( InvalidScheduleDateException::INVALID );
 		}
 
 		$timestamp = $date->getTimestamp();
 
 		if ( $timestamp <= $this->clock->now() ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exceptions are caught and converted to translated admin notices.
 			throw new InvalidScheduleDateException( InvalidScheduleDateException::PAST );
 		}
 

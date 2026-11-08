@@ -1,5 +1,13 @@
 FROM wordpress:php8.4-apache
 
+# Install tools required by the WordPress PHPUnit test installer.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends subversion \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
 # Fail the build if PHP is below the required security-fix level.
 RUN php -r "if (version_compare(PHP_VERSION, '8.4.27', '<')) { fwrite(STDERR, 'PHP 8.4.27+ required for this development image; current: ' . PHP_VERSION . PHP_EOL); exit(1); }"
 

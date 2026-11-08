@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit
-	bootstrap="tests/unit/bootstrap.php"
-	colors="true"
-	beStrictAboutTestsThatDoNotTestAnything="true"
-	failOnWarning="true"
+        colors="true"
+        beStrictAboutTestsThatDoNotTestAnything="true"
+        failOnWarning="true"
 >
-	<testsuites>
-		<testsuite name="unit">
-			<directory suffix="Test.php">tests/unit</directory>
-		</testsuite>
-	</testsuites>
+        <testsuites>
+                <testsuite name="unit">
+                        <directory suffix="Test.php">tests/unit</directory>
+                </testsuite>
+
+                <testsuite name="integration">
+                        <directory suffix="IntegrationTest.php">tests/integration</directory>
+                </testsuite>
+        </testsuites>
 </phpunit>

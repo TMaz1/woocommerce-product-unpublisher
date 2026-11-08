@@ -12,24 +12,6 @@
     font-size: 13px;
 }
 
-/* Products list: Unpublishes column */
-.wp-list-table th.column-wpu_unpublish,
-.wp-list-table td.column-wpu_unpublish {
-    width: 140px !important;
-    min-width: 140px !important;
-    white-space: nowrap !important;
-}
-
-th#wpu_unpublish {
-    width: 140px;
-    min-width: 140px;
-    white-space: nowrap;
-}
-
-body.post-type-product .wp-list-table th# wpu_unpublish {
-    color: red !important;
-}
-
 /* Calendar icon */
 
 #wpu-publish-row>.dashicons {

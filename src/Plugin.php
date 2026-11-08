@@ -24,6 +24,7 @@ use ProductUnpublisher\Cron\WpCronGateway;
 use ProductUnpublisher\Diagnostics\OptionFailureLog;
 use ProductUnpublisher\Product\ProductUnpublisher;
 use ProductUnpublisher\Product\WpProductGateway;
+use ProductUnpublisher\Product\ProductDuplicateHandler;
 use ProductUnpublisher\Schedule\Reconciler;
 use ProductUnpublisher\Schedule\RetryPolicy;
 use ProductUnpublisher\Schedule\ScheduleManager;
@@ -123,6 +124,7 @@ final class Plugin {
 		// Behaviour that must run in every context (cron, admin, WP-CLI).
 		( new UnpublishRunner( $this->schedules, $this->store, $this->products, $this->unpublisher, $this->failures, $this->retry, $this->clock ) )->register();
 		( new StatusListener( $this->schedules, $this->failures ) )->register();
+		( new ProductDuplicateHandler() )->register();
 
 		// Request handlers (guarded by nonces and capability checks).
 		$notices      = new ProductNoticeStore();
