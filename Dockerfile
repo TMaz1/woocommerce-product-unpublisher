@@ -1,8 +1,11 @@
 FROM wordpress:php8.4-apache
 
-# Install tools required by the WordPress PHPUnit test installer.
+# Install tools required for WordPress development, testing and packaging.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends subversion \
+    && apt-get install -y --no-install-recommends \
+    subversion \
+    zip \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
