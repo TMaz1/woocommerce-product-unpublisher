@@ -124,9 +124,9 @@ final class ListColumn
 			return;
 		}
 
-		/* translators: 1: Scheduled date, 2: Scheduled time. */
 		echo esc_html(
 			sprintf(
+				/* translators: 1: Scheduled date, 2: Scheduled time. */
 				__('Scheduled %1$s at %2$s', 'woocommerce-product-unpublisher'),
 				wp_date('Y/m/d', $timestamp),
 				wp_date('H:i', $timestamp)
